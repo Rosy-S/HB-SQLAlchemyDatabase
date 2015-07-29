@@ -15,7 +15,7 @@ def load_users():
 
     for line in lines: 
         column_data = line.split("|")
-        line = User(user_id=column_data[0], email=column_data[1], password=column_data[2], age=column_data[3], zipcode=column_data[4])
+        line = User(age=column_data[1], zipcode=column_data[4])
         db.session.add(line)
     db.session.commit()
 
