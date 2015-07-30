@@ -32,17 +32,49 @@ def user_list():
     users = User.query.all()
     return render_template("user_list.html", users=users)
 
-@app.route("/login", methods=["POST"])
+@app.route("/sign_in", methods=["POST", "GET"])
 def login():
     """Login."""
-    Email = request.form.get("email")
-    Password = request.form.get("password")
-    Query = db.session.query(User.password).filter(User.email == Email).all()
-    if Password != Query: 
-            error = 'Invalid credentials'
-    else:
-        flash('You were successfully logged in')
-        return redirect("/")    
+    if request.method == "POST":
+        email = request.form.get("email")
+        print "Email: ", email
+        password = request.form.get("password")
+        print "Password: ", password
+        user = db.session.query(User).filter(User.email == email).one()
+        print "Query: ", user
+        print user.password
+        if password != user.password: 
+            # import pdb; pdb.set_trace()
+            flash('Invalid credentials, try again')
+            return render_template("login.html")
+        else:    
+            print "SUCCESS*******************"
+            session['user_id'] = user.user_id
+            flash('You were successfully logged in')
+            return render_template("homepage.html")       
+    else: 
+        return render_template("login.html") 
+
+@app.route("/sign_out")
+def logout():
+    """ LOGOUT."""
+    if "user_id" in session: 
+        session.pop('user_id', None)
+        print session
+        flash('You have been logged out')
+        return render_template('homepage.html')
+    else: 
+        flash('Are you sure you logged in?')
+        return render_template('login.html')
+
+@app.route("/users/id=")
+def users_details():
+    """ USER DETAILS"""
+    user_id = session['user_id']
+    user1 = db.session.query(User).filter_by(User.user_id).one()
+    print user1
+
+    return render_template("user_details.html")
 
 
 if __name__ == "__main__":
