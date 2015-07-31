@@ -86,23 +86,29 @@ def movie_details(id):
     movie = Movie.query.get(id)
     movie_title = movie.title
     ratings_list = movie.ratings 
-    user_id = session['user_id']
-    rating = Rating.query.filter(Rating.movie_id == id, Rating.user_id == user_id).all()
-    score = rating[0].score
-    print score
-    
-    # if session['user_id']: 
-    #     user_id = session['user_id']
-
     return render_template("movie_details.html", movie_title=movie_title, ratings=ratings_list)
 
-@app.route("/make_rating")
-def make_rating():
-    score = form.args.get("rating")
-    if session['user_id']: 
-        pass
-    pass
-        
+@app.route("/rating_movie/<int:id>")
+def rate_movie(id):
+
+    updated_score = request.args.get("rating")
+    user_id = session['user_id']  
+    if user_id: 
+        rating = Rating.query.filter(Rating.movie_id == id, Rating.user_id == user_id).all()
+        if rating: 
+            print rating
+            rating[0].score = updated_score
+            db.session.commit()
+            flash("your score has been updated!")
+        else: 
+            new_rating = Rating(movie_id=id, user_id=user_id, score=updated_score)
+            db.session.add(new_rating)
+            db.session.commit()
+            flash("your score has been added! thanks for scoring")
+    else: 
+        flash("are you sure you are logged in? ")
+
+    return render_template("rate_movie.html", movie_id=id)
 
 
 
