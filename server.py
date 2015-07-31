@@ -9,6 +9,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 
 
+
+
 app = Flask(__name__)
 
 # Required to use Flask sessions and the debug toolbar
@@ -32,26 +34,29 @@ def user_list():
     users = User.query.all()
     return render_template("user_list.html", users=users)
 
+@app.route("/movie_list")   
+def movie_list():
+
+    movies = Movie.query.order_by(Movie.title).all()
+    return render_template("movies_list.html", movies=movies)
+
+
 @app.route("/sign_in", methods=["POST", "GET"])
 def login():
     """Login."""
     if request.method == "POST":
         email = request.form.get("email")
-        print "Email: ", email
         password = request.form.get("password")
-        print "Password: ", password
         user = db.session.query(User).filter(User.email == email).one()
-        print "Query: ", user
-        print user.password
         if password != user.password: 
             # import pdb; pdb.set_trace()
             flash('Invalid credentials, try again')
             return render_template("login.html")
         else:    
-            print "SUCCESS*******************"
             session['user_id'] = user.user_id
             flash('You were successfully logged in')
-            return render_template("homepage.html")       
+            id = str(session['user_id'])
+            return redirect("/users/" + id)       
     else: 
         return render_template("login.html") 
 
@@ -60,21 +65,46 @@ def logout():
     """ LOGOUT."""
     if "user_id" in session: 
         session.pop('user_id', None)
-        print session
         flash('You have been logged out')
         return render_template('homepage.html')
     else: 
         flash('Are you sure you logged in?')
         return render_template('login.html')
 
-@app.route("/users/id=")
-def users_details():
+@app.route("/users/<int:id>")
+def users_details(id):
     """ USER DETAILS"""
-    user_id = session['user_id']
-    user1 = db.session.query(User).filter_by(User.user_id).one()
-    print user1
+    user = User.query.get(id)
+    age = user.age
+    zipcode = user.zipcode
+    movie_list = user.ratings
+    return render_template("user_details.html", age=age, zipcode=zipcode, movie_list=movie_list)
 
-    return render_template("user_details.html")
+@app.route("/movies_list/<int:id>")
+def movie_details(id): 
+    """ MOVIE DETAILS"""
+    movie = Movie.query.get(id)
+    movie_title = movie.title
+    ratings_list = movie.ratings 
+    user_id = session['user_id']
+    rating = Rating.query.filter(Rating.movie_id == id, Rating.user_id == user_id).all()
+    score = rating[0].score
+    print score
+    
+    # if session['user_id']: 
+    #     user_id = session['user_id']
+
+    return render_template("movie_details.html", movie_title=movie_title, ratings=ratings_list)
+
+@app.route("/make_rating")
+def make_rating():
+    score = form.args.get("rating")
+    if session['user_id']: 
+        pass
+    pass
+        
+
+
 
 
 if __name__ == "__main__":
