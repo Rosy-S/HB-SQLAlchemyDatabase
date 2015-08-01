@@ -41,6 +41,16 @@ def movie_list():
     return render_template("movies_list.html", movies=movies)
 
 
+@app.route("/movies_list/<int:id>")
+def movie_details(id): 
+    """ MOVIE DETAILS"""
+    movie = Movie.query.get(id)
+    print movie
+    movie_title = movie.title
+    print movie_title
+    ratings_list = movie.ratings 
+    return render_template("movie_details.html", movie_title=movie_title, ratings=ratings_list, movie_id=id)
+
 @app.route("/sign_in", methods=["POST", "GET"])
 def login():
     """Login."""
@@ -80,20 +90,15 @@ def users_details(id):
     movie_list = user.ratings
     return render_template("user_details.html", age=age, zipcode=zipcode, movie_list=movie_list)
 
-@app.route("/movies_list/<int:id>")
-def movie_details(id): 
-    """ MOVIE DETAILS"""
-    movie = Movie.query.get(id)
-    movie_title = movie.title
-    ratings_list = movie.ratings 
-    return render_template("movie_details.html", movie_title=movie_title, ratings=ratings_list)
 
-@app.route("/rating_movie/<int:id>")
+@app.route("/rate_movie/<int:id>")
 def rate_movie(id):
 
     updated_score = request.args.get("rating")
-    user_id = session['user_id']  
-    if user_id: 
+    print '************************************', session
+
+    if session.get('user_id', None): 
+        user_id = session['user_id'] 
         rating = Rating.query.filter(Rating.movie_id == id, Rating.user_id == user_id).all()
         if rating: 
             print rating
@@ -108,7 +113,7 @@ def rate_movie(id):
     else: 
         flash("are you sure you are logged in? ")
 
-    return render_template("rate_movie.html", movie_id=id)
+    return render_template("homepage.html")
 
 
 
